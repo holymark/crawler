@@ -13,20 +13,55 @@ const Handler: reqHandler = async ({
   pushData,
   enqueueLinks,
 }) => {
-  const title = await page.title();
-  const { loadedUrl } = request;
-  log.info(`Page Title of ${loadedUrl}:=> ${title}`);
+  log.info(`Processing:${request.url}`);
+  await page.waitForSelector(".collection-block-item");
+  if (request.label === "DETAIL") {
+    // do nothing yet
+  } else if (request.label === "CATEGORY") {
+    await page.waitForSelector(".product-item > a");
 
-  await pushData({ PageTitle: title, url: loadedUrl });
+    await enqueueLinks({
+      selector: ".product-item > a",
+      label: "DETAIL", // <= note the different label
+    });
 
-  // extract and enque links
-  await enqueueLinks();
+    // Now we need to find the "Next" button and enqueue the next page of results (if it exists)
+    const $next__button = await page.$eval(
+      "a.pagination__next",
+      (firstRes) => firstRes.textContent
+    );
+    if ($next__button) {
+      enqueueLinks({
+        selector: "a.pagination__next",
+        label: "CATEGORY", // <= note the same label
+      });
+    }
+  } else {
+    // This means we're on the start page, with no label.
+    // On this page, we just want to enqueue all the category pages.
+
+    await page.waitForSelector(".collection-block-item");
+    enqueueLinks({
+      selector: ".collection-block-item",
+      label: "CATEGORY",
+    });
+  }
+  //   const categoryTexts = page.$$eval(".collection-block-item", (elements) => {
+  //     return elements.map((elem) => elem.textContent);
+  //   });
+
+  //   (await categoryTexts).forEach((catText, index) => {
+  //     log.info(`CATEGORY_${index + 1}: ${catText}`);
+  //   });
 };
 
-async function $PlaywrightCrawler() :Promise<PlaywrightCrawler>{
+async function $PlaywrightCrawler(
+  maxRequestsPerCrawl?: number
+): Promise<PlaywrightCrawler> {
   const Crawler = new PlaywrightCrawler({
     requestHandler: Handler,
-    maxRequestsPerCrawl: CrawlerOptions.maxRequestsPerCrawl,
+    maxRequestsPerCrawl:
+      CrawlerOptions.maxRequestsPerCrawl || maxRequestsPerCrawl,
   });
 
   return Crawler;
