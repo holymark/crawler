@@ -3,7 +3,7 @@ import { PlaywrightCrawler, PlaywrightCrawlerOptions } from "crawlee";
 type reqHandler = PlaywrightCrawlerOptions["requestHandler"];
 
 const CrawlerOptions: PlaywrightCrawlerOptions = {
-  maxRequestsPerCrawl: 10,
+  // maxRequestsPerCrawl: 10,
 };
 
 const Handler: reqHandler = async ({
@@ -13,8 +13,7 @@ const Handler: reqHandler = async ({
   pushData,
   enqueueLinks,
 }) => {
-  log.info(`Processing:${request.url}`);
-  await page.waitForSelector(".collection-block-item");
+  log.info(`Processing:=> ${request.url}`);
   if (request.label === "DETAIL") {
     // do nothing yet
   } else if (request.label === "CATEGORY") {
@@ -26,12 +25,9 @@ const Handler: reqHandler = async ({
     });
 
     // Now we need to find the "Next" button and enqueue the next page of results (if it exists)
-    const $next__button = await page.$eval(
-      "a.pagination__next",
-      (firstRes) => firstRes.textContent
-    );
+    const $next__button = await page.$("a.pagination__next");
     if ($next__button) {
-      enqueueLinks({
+      await enqueueLinks({
         selector: "a.pagination__next",
         label: "CATEGORY", // <= note the same label
       });
@@ -41,7 +37,7 @@ const Handler: reqHandler = async ({
     // On this page, we just want to enqueue all the category pages.
 
     await page.waitForSelector(".collection-block-item");
-    enqueueLinks({
+    await enqueueLinks({
       selector: ".collection-block-item",
       label: "CATEGORY",
     });
