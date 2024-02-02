@@ -1,6 +1,9 @@
-import { RequestQueue } from "crawlee";
+import { RequestQueue, log } from "crawlee";
 import $PlaywrightCrawler from "./crawlers/PlaywrightCrawler.js";
 import $CheerioCrawler from "./crawlers/CheerioCrawler.js";
+
+log.setLevel(log.LEVELS.DEBUG);
+log.debug("Setting up crawler.");
 
 /**
  * we want to get this data from https://warehouse-theme-metal.myshopify.com/collections
