@@ -16,6 +16,11 @@ router.addHandler("DETAIL", async ({ request, page, log }) => {
   // get the sku info
   const SKU = await page.locator("span.product-meta__sku-number").textContent();
 
+  const span_price = (await page.locator("span.price").textContent()).includes(
+    "$"
+  );
+
+  console.log(span_price);
   // get the price element
   const product__price__element = page.locator("span.price").filter({
     hasText: `$`,

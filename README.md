@@ -1,5 +1,7 @@
-# crawler
+# Crawlee web crawler
 
-a http URL crawler
+This project uses crawlee by Apify and playwright by Microsoft to crawl an e-commerce platform
 
-<!-- https://crawlee.dev/docs/introduction/scraping -->
+- [Uses this reference documentation](https://crawlee.dev/docs/introduction) for Crawlee
+- `PlaywrightCrawler` [API documentation](https://crawlee.dev/api/playwright-crawler/class/PlaywrightCrawler)
+- Other [examples](https://crawlee.dev/docs/examples/playwright-crawler)
