@@ -3,59 +3,77 @@ import { createPlaywrightRouter, Dataset } from "crawlee";
 export const router = createPlaywrightRouter();
 
 /*888888888888888888888888888888888888888*/
-router.addHandler("DETAIL", async ({ request, page, log }) => {
-  log.debug(`Extracting data: ${request.url}`);
+router.addHandler(
+  "DETAIL",
+  async ({ request, page, log, parseWithCheerio }) => {
+    const $ = await parseWithCheerio();
+    log.debug(`Extracting data: ${request.url}`);
 
-  // get the url splitted parts
-  const url__part = request.url.split("/").slice(-1); //  ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
-  const manufacturer__url__part = url__part[0].split("-")[0]; // ['sennheiser']
+    // get the url splitted parts
+    const url__part = request.url.split("/").slice(-1); //  ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
+    const manufacturer__url__part = url__part[0].split("-")[0]; // ['sennheiser']
 
-  // get product title
-  const product__title = await page.locator(".product-meta h1").textContent();
+    // get product title
+    const product__title = await page.locator(".product-meta h1").textContent();
 
-  // get the sku info
-  const SKU = await page.locator("span.product-meta__sku-number").textContent();
+    // get the sku info
+    const SKU = await page
+      .locator("span.product-meta__sku-number")
+      .textContent();
 
-  const span_price = (await page.locator("span.price").textContent()).includes(
-    "$"
-  );
+    // const span_price = (
+    //   await page.locator("span.price").textContent()
+    // ).includes("$");
 
-  console.log(span_price);
-  // get the price element
-  const product__price__element = page.locator("span.price").filter({
-    hasText: `$`,
-  });
+    // console.log(span_price);
+    // // get the price element
+    // const product__price__element = page.locator("span.price").filter({
+    //   hasText: `$`,
+    // });
 
-  // get the price info
-  const current__price__string = await product__price__element.textContent();
-  const raw__price = current__price__string?.split("$")[1];
-  const price = Number(raw__price?.replace(",", ""));
+    const span_price__element = $("span.price");
+    // get the price info
+    // const current__price__string = await product__price__element.textContent();
+    // const raw__price = current__price__string?.split("$")[1];
+    // const price = Number(raw__price?.replace(",", ""));
+    var price: number;
+    const span_price = span_price__element.text().includes("€");
+    if (span_price) {
+      const raw__price = span_price__element
+        .text()
+        ?.split("€")[1]
+        .replace("Sale price", "");
 
-  // check if it's in stock
+      price = Number(raw__price?.replace(",", ""));
+      console.log({ price, raw__price, span_price });
+    }
+    // check if it's in stock
 
-  const in__stock__element = page
-    .locator("span.product-form__inventory")
-    .filter({
-      hasText: `In stock`,
-    });
+    const in__stock__element = page
+      .locator("span.product-form__inventory")
+      .filter({
+        hasText: `In stock`,
+      });
 
-  const in__stock = (await in__stock__element.count()) > 0;
+    console.log(in__stock__element);
+    const in__stock = (await in__stock__element.count()) > 0;
 
-  // Print out results
-  const results = {
-    URL: request.url,
-    TITLE: product__title,
-    MANUFACTURER: manufacturer__url__part,
-    SKU,
-    PRICE: price,
-    INSTOCK: in__stock,
-  };
+    // Print out results
+    const results = {
+      URL: request.url,
+      TITLE: product__title,
+      MANUFACTURER: manufacturer__url__part,
+      SKU,
+      PRICE: price,
+      INSTOCK: in__stock,
+    };
 
-  // save the data
-  console.log(results);
-  log.debug(`Saving data: ${request.url}`);
-  await Dataset.pushData(results);
-});
+    // save the data
+    console.log(results);
+    log.debug(`Saving data: ${request.url}`);
+    await Dataset.pushData(results);
+  }
+);
 
 /*888888888888888888888888888888888888888*/
 router.addHandler("CATEGORY", async ({ page, enqueueLinks, request, log }) => {
