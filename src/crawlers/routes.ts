@@ -37,12 +37,12 @@ router.addHandler(
     // const raw__price = current__price__string?.split("$")[1];
     // const price = Number(raw__price?.replace(",", ""));
     var price: number;
-    const span_price = span_price__element.text().includes("€");
+    const span_price = span_price__element.text().includes("€" || "$");
     if (span_price) {
       const raw__price = span_price__element
         .text()
-        ?.split("€")[1]
-        .replace("Sale price", "");
+        ?.split("€" || "$")[1]
+        .replace(/[a-zA-z]/g, "");
 
       price = Number(raw__price?.replace(",", ""));
       console.log({ price, raw__price, span_price });
@@ -69,7 +69,7 @@ router.addHandler(
     };
 
     // save the data
-    console.log(results);
+    // console.log(results);
     log.debug(`Saving data: ${request.url}`);
     await Dataset.pushData(results);
   }
